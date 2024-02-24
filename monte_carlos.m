@@ -12,6 +12,9 @@ sigma_B = 0.4;
 mu_Z = 0.3;
 sigma_Z = 0.15;
 
+sigma_Z1 = sqrt(log((sigma_Z^2/mu_Z^2) + 1));
+mu_Z1 = log(mu_Z) - 0.5*(sigma_Z1^2);
+
 
 A1 = zeros(n,1);
 B1 = zeros(n,1);
@@ -20,7 +23,7 @@ Z1 = zeros(n,1);
 for i = 1:n
     A1(i,1) = expinv(A(i), mu_A);
     B1(i,1) = norminv(B(i), mu_B, sigma_B);
-    Z1(i,1) = logninv(Z(i), mu_Z, sigma_Z);
+    Z1(i,1) = logninv(Z(i), mu_Z1, sigma_Z1);
 
 end
 
@@ -39,12 +42,12 @@ disp(pf1)
 
 %probability of failure when the rood displacement exceeds 10inches
 pf2 = (1/n)* sum(a2);
-disp(pf2)
+disp(pf2/pf1)
 
 %% correlation between A and B
-A1 = randn(n,1); %1st uniform random variable
-Z1 = randn(n,1); %2nd uniform random variable
-B1 = randn(n,1); %3rd uniform random variable
+A1 = normrnd(0,1, n,1); 
+Z1 = normrnd(0,1 , n,1);
+B1 = normrnd(0, 1, n,1); 
 R = [1, 0.75, 0; 0.75, 1, 0; 0,0,1];
 L = chol(R, 'lower');
 
@@ -55,15 +58,15 @@ A2 = zeros(n,1);
 B2 = zeros(n,1);
 Z2 = zeros(n,1);
 for i = 1:n
-    A2(i,1) = expinv(z(1, i), mu_A);
-    B2(i,1) = norminv(z(2, i), mu_B, sigma_B);
-    Z2(i,1) = logninv(z(3, i), mu_Z, sigma_Z);
+    A2(i,1) = expinv(normcdf(z(1, i)), mu_A);
+    B2(i,1) = norminv(normcdf(z(2, i)), mu_B, sigma_B);
+    Z2(i,1) = logninv(normcdf(z(3, i)), mu_Z1, sigma_Z1);
 
 end
 
 x = zeros(n,1);
 for i = 1:n
-    x(i,1) = A2(i)*(normcdf(Z2(i))^B2(i));
+    x(i,1) = A2(i)*((Z2(i))^B2(i));
 end
 
 a3 = x > 5;
@@ -76,4 +79,4 @@ disp(pf3)
 
 %probability of failure when the rood displacement exceeds 10inches
 pf4 = (1/n)* sum(a4);
-disp(pf4)
+disp(pf4/pf3)
